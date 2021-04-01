@@ -1,4 +1,5 @@
 var issueContainerEl = document.querySelector("#issues-container");
+var limitWarningEl = document.querySelector("#limit-warning");
 
 var getRepoIssues = function(repo) {
     var apiUrl = "https://api.github.com/repos/" + repo + "/issues?direction=asc";
@@ -9,6 +10,11 @@ var getRepoIssues = function(repo) {
             response.json().then(function(data) {
                 // Pass response data to DOM function
                 displayIssues(data);
+
+                // Check if API has paginated issues (more than 30 issues)
+                if (response.headers.get("Link")) {
+                    displayWarning(repo);
+                }
             });
         }
         else {
@@ -22,7 +28,7 @@ var displayIssues = function(issues) {
         issueContainerEl.textContent = "This repo has no open issues!";
         return;
     }
-    
+
     for (var i = 0; i < issues.length; i++) {
         // Create a link element to take users to the issue on GitHub
         var issueEl = document.createElement("a");
@@ -56,4 +62,18 @@ var displayIssues = function(issues) {
     }
 };
 
-getRepoIssues("rwyland189/run-buddy");
+var displayWarning = function(repo) {
+    // Add text to warning container
+    limitWarningEl.textContent = "To see more than 30 issues, visit ";
+
+    // Link to view more issues
+    var linkEl = document.createElement("a");
+    linkEl.textContent = "See More Issues on GitHub.com";
+    linkEl.setAttribute("href", "https://github.com/" + repo + "/issues");
+    linkEl.setAttribute("target", "_blank");
+
+    // Append to warning container
+    limitWarningEl.appendChild(linkEl);
+};
+
+getRepoIssues("facebook/react");
